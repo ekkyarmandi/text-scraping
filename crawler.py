@@ -17,11 +17,11 @@ class WordsCrawler:
         self.headless=headless
 
         # define allowed domain
-        allowed = re.search("(?<=/)[a-zA-Z. ]+(?=/)",url).group()
-        self.ref = "https://"+allowed
+        self.allowed = re.search("(?<=/)[a-zA-Z. ]+(?=/)",url).group()
+        self.ref = "https://"+self.allowed
 
     def run(self):
-        '''Run the crawler'''
+        '''Run the words crawler'''
 
         # open the chromedriver
         options = Options()
@@ -31,6 +31,7 @@ class WordsCrawler:
         self.browser = Chrome(options=options)
         self.browser.get(self.ref)
 
+        # adding cookies
         if self.cookies_path != None and len(self.cookies_path) != 0:
             self.add_cookies()
         else:
@@ -69,7 +70,7 @@ class WordsCrawler:
         print(f"done! {len(container):,d} has been collected")
 
     def add_cookies(self):
-        '''Adding cookies into the browser'''
+        '''Adding cookies to the driver'''
 
         raw_data = json.load(open(self.cookies_path))
         self.browser.delete_all_cookies()
@@ -86,7 +87,7 @@ class WordsCrawler:
         '''Put word into the words container'''
 
         def remove_whitespace(text: str) -> str:
-            '''Clean the text from whitespace'''
+            '''Clean the text from whitespace and punctuation'''
 
             text = "".join([s for s in text if s not in string.punctuation])
             text = re.sub("\s+"," ",text).strip()
@@ -100,7 +101,7 @@ class WordsCrawler:
                 text = text.split(" ")
                 container.extend(text)
                 
-                # if exceed 10000, stop the iteration process
+                # if exceed 10000, stop the iteration
                 if len(container) >= 10000:
                     return container[:10000]
         
@@ -109,7 +110,7 @@ class WordsCrawler:
         return container
 
     def collect_links(self) -> list:
-        '''Collect website URLs'''
+        '''Collect URLs from the visited website'''
 
         links = []
         soup = BeautifulSoup(self.browser.page_source,"html.parser")
@@ -118,5 +119,6 @@ class WordsCrawler:
                 link = a['href']
                 if "http" not in link: 
                     link = self.ref + link
-                links.append(link)
+                if self.allowed in link:
+                    links.append(link)
         return list(dict.fromkeys(links))
