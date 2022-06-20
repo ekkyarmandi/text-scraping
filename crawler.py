@@ -77,8 +77,7 @@ class WordsCrawler:
         for cookie in raw_data['cookies']:
             self.browser.add_cookie(dict(
                 name=cookie['name'],
-                value=cookie['value'],
-                domain=cookie['domain']
+                value=cookie['value']
             ))
         self.browser.get(self.url)
         time.sleep(2)
